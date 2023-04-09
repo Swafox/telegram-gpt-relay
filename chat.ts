@@ -6,10 +6,23 @@ const aikey: string = configData["OPENAI_API_KEY"];
 const openAI = new OpenAI(aikey);
 
 // deno-lint-ignore no-explicit-any
-export default async function chatCompletion(messages: any[]) {
+async function chatCompletion(messages: any[]) {
     const completion = await openAI.createChatCompletion({
         model: "gpt-3.5-turbo",
         messages: messages,
     });
     return completion.choices[0].message?.content;
 }
+
+async function createCompletion(prompt: string) {
+    const completion = await openAI.createCompletion({
+        model: "text-davinci-003",
+        prompt: prompt,
+      });
+    return completion.choices[0].text;
+}
+
+export {
+    chatCompletion,
+    createCompletion,
+};

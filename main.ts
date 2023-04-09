@@ -1,7 +1,7 @@
 import { Bot } from "https://deno.land/x/grammy@v1.15.3/mod.ts";
 import { load } from "https://deno.land/std@0.170.0/dotenv/mod.ts";
 import { MongoClient } from "https://deno.land/x/mongo@v0.31.2/mod.ts";
-import chatCompletion from "./chat.ts";
+import { chatCompletion, createCompletion } from "./chat.ts";
 
 // Get the API key from the .env file
 const configData: Record<string, string> = await load();
@@ -85,5 +85,23 @@ bot.on("message", async (ctx) => {
   }
 });
 
+// Inline query handler
+bot.on("inline_query", async (ctx) => {
+  if (ctx.inlineQuery.query.includes("!!")) {
+    ctx.inlineQuery.query = ctx.inlineQuery.query.replace("!!", "");
+    const response = await createCompletion(ctx.inlineQuery.query);
+
+    ctx.answerInlineQuery([
+      {
+        type: "article",
+        id: "1",
+        title: "GPT-3",
+        input_message_content: {
+          message_text: response as string,
+        },
+      },
+    ]);
+  }
+});
 
 bot.start();
