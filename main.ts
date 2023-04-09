@@ -95,7 +95,7 @@ bot.on("inline_query", async (ctx) => {
       {
         type: "article",
         id: "1",
-        title: "GPT-3",
+        title: response as string,
         input_message_content: {
           message_text: response as string,
         },
