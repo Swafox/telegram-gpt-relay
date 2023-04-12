@@ -29,7 +29,7 @@ try {
 
 // Start command handler
 bot.command("start", async (ctx) => {
-  ctx.reply("Hello! I am a GPT-3 bot. I can answer your questions and help you with your tasks. I will be adding our conversation to the database.");
+  ctx.reply("I am an AI based on GPT-3 language model. \n I can answer your questions and chat with you in any language. \n Type /clear to remove chat context and start a new conversation.");
 
   // Check if the user is already in the database
   const user = await collection.findOne({ _id: ctx.msg.chat.id });
@@ -59,7 +59,7 @@ bot.command("clear", async (ctx) => {
 });
 
 // Message handler
-bot.on("message", async (ctx) => {
+bot.on("message:text", async (ctx) => {
   const user = await collection.findOne({ _id: ctx.msg.chat.id });
   if (user) {
     const messages = user.messages;
@@ -87,21 +87,18 @@ bot.on("message", async (ctx) => {
 
 // Inline query handler
 bot.on("inline_query", async (ctx) => {
-  if (ctx.inlineQuery.query.includes("!!")) {
-    ctx.inlineQuery.query = ctx.inlineQuery.query.replace("!!", "");
-    const response = await createCompletion(ctx.inlineQuery.query);
-
-    ctx.answerInlineQuery([
-      {
-        type: "article",
-        id: "1",
-        title: response as string,
-        input_message_content: {
-          message_text: response as string,
-        },
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const response = await createCompletion(ctx.inlineQuery.query);
+  ctx.answerInlineQuery([
+    {
+      type: "article",
+      id: "1",
+      title: response as string,
+      input_message_content: {
+        message_text: response as string,
       },
-    ]);
-  }
+    },
+  ]);
 });
 
 bot.start();
