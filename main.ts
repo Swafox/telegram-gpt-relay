@@ -30,8 +30,6 @@ try {
 // Start command handler
 bot.command("start", async (ctx) => {
   ctx.reply("I am an AI based on GPT-3 language model. \n I can answer your questions and chat with you in any language. \n Type /clear to remove chat context and start a new conversation.");
-
-  // Check if the user is already in the database
   const user = await collection.findOne({ _id: ctx.msg.chat.id });
   if (user) {
     ctx.reply("You are already in the database! Welcome back :)");
@@ -86,7 +84,6 @@ bot.on("message:text", async (ctx) => {
     const response = await chatCompletion(messages);
 
     messages.push({ role: "assistant", content: response.choices[0].message?.content as string });
-    // Update the database and add usage from response.usage.completion_tokens
     collection.updateOne(
       { _id: ctx.msg.chat.id },
       {
