@@ -11,7 +11,7 @@ async function chatCompletion(messages: any[]) {
         model: "gpt-3.5-turbo",
         messages: messages,
     });
-    return completion.choices[0].message?.content;
+    return completion;
 }
 
 async function createCompletion(prompt: string) {
@@ -21,7 +21,7 @@ async function createCompletion(prompt: string) {
         maxTokens: 1024,
         temperature: 0.5,
       });
-    return completion.choices[0].text;
+    return completion;
 }
 
 export {

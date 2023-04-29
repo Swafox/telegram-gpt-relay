@@ -39,6 +39,7 @@ bot.command("start", async (ctx) => {
     collection.insertOne({
       _id: ctx.msg.chat.id,
       messages: [],
+      usage: 0,
     });
     ctx.reply("Hello! Adding our conversation to the database");
   }
@@ -73,13 +74,15 @@ bot.on("message:text", async (ctx) => {
 
     const response = await chatCompletion(messages);
 
-    messages.push({ role: "assistant", content: response });
+    messages.push({ role: "assistant", content: response.choices[0].message?.content as string });
+    // Update the database and add usage from response.usage.completion_tokens
     collection.updateOne(
       { _id: ctx.msg.chat.id },
-      { $set: { messages: messages } },
+      { $set: { messages: messages }, 
+      $inc: { usage: response.usage.completion_tokens } },
     );
 
-    ctx.api.editMessageText(ctx.msg.chat.id, thinking.message_id, response as string);
+    ctx.api.editMessageText(ctx.msg.chat.id, thinking.message_id, response.choices[0].message?.content as string);
   } else {
     ctx.reply("You are not in the database! Please use /start to add yourself to the database");
   }
@@ -93,9 +96,9 @@ bot.on("inline_query", async (ctx) => {
     {
       type: "article",
       id: "1",
-      title: response as string,
+      title: response.choices[0].text as string,
       input_message_content: {
-        message_text: response as string,
+        message_text: response.choices[0].text as string,
       },
     },
   ]);
