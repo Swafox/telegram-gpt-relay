@@ -22,14 +22,18 @@ const collection = db.collection("users");
 const bot = new Bot(apiKey);
 try {
   await bot.init();
-  console.log(`Bot is running as ${bot.botInfo.first_name} (${bot.botInfo.username})`);
+  console.log(
+    `Bot is running as ${bot.botInfo.first_name} (${bot.botInfo.username})`,
+  );
 } catch (error) {
   console.log(error);
 }
 
 // Start command handler
 bot.command("start", async (ctx) => {
-  ctx.reply("I am an AI based on GPT-3 language model. \n I can answer your questions and chat with you in any language. \n Type /clear to remove chat context and start a new conversation.");
+  ctx.reply(
+    "I am an AI based on GPT-3 language model. \n I can answer your questions and chat with you in any language. \n Type /clear to remove chat context and start a new conversation.",
+  );
   const user = await collection.findOne({ _id: ctx.msg.chat.id });
   if (user) {
     ctx.reply("You are already in the database! Welcome back :)");
@@ -53,7 +57,9 @@ bot.command("clear", async (ctx) => {
     );
     ctx.reply("Cleared our conversation from the database");
   } else {
-    ctx.reply(`You are not in the database! Please use /start at ${bot.botInfo.username}`);
+    ctx.reply(
+      `You are not in the database! Please use /start at ${bot.botInfo.username}`,
+    );
   }
 });
 
@@ -62,9 +68,13 @@ bot.command("stats", async (ctx) => {
   const user = await collection.findOne({ _id: ctx.msg.chat.id });
   if (user) {
     const monetary = (user.usage / 1000) * 0.002;
-    ctx.reply(`You have used ${user.usage} tokens, which is ${monetary} USD at the current rate of 0.002 USD per 1000 tokens.`);
+    ctx.reply(
+      `You have used ${user.usage} tokens, which is ${monetary} USD at the current rate of 0.002 USD per 1000 tokens.`,
+    );
   } else {
-    ctx.reply(`You are not in the database! Please use /start at ${bot.botInfo.username}`);
+    ctx.reply(
+      `You are not in the database! Please use /start at ${bot.botInfo.username}`,
+    );
   }
 });
 
@@ -83,18 +93,27 @@ bot.on("message:text", async (ctx) => {
 
     const response = await chatCompletion(messages);
 
-    messages.push({ role: "assistant", content: response.choices[0].message?.content as string });
+    messages.push({
+      role: "assistant",
+      content: response.choices[0].message?.content as string,
+    });
     collection.updateOne(
       { _id: ctx.msg.chat.id },
       {
         $set: { messages: messages },
-        $inc: { usage: response.usage.completion_tokens }
+        $inc: { usage: response.usage.completion_tokens },
       },
     );
 
-    ctx.api.editMessageText(ctx.msg.chat.id, thinking.message_id, response.choices[0].message?.content as string);
+    ctx.api.editMessageText(
+      ctx.msg.chat.id,
+      thinking.message_id,
+      response.choices[0].message?.content as string,
+    );
   } else {
-    ctx.reply("You are not in the database! Please use /start to add yourself to the database");
+    ctx.reply(
+      "You are not in the database! Please use /start to add yourself to the database",
+    );
   }
 });
 

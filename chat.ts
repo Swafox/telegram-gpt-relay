@@ -7,24 +7,21 @@ const openAI = new OpenAI(aikey);
 
 // deno-lint-ignore no-explicit-any
 async function chatCompletion(messages: any[]) {
-    const completion = await openAI.createChatCompletion({
-        model: "gpt-3.5-turbo",
-        messages: messages,
-    });
-    return completion;
+  const completion = await openAI.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: messages,
+  });
+  return completion;
 }
 
 async function createCompletion(prompt: string) {
-    const completion = await openAI.createCompletion({
-        model: "text-davinci-003",
-        prompt: prompt,
-        maxTokens: 1024,
-        temperature: 0.5,
-      });
-    return completion;
+  const completion = await openAI.createCompletion({
+    model: "text-davinci-003",
+    prompt: prompt,
+    maxTokens: 1024,
+    temperature: 0.5,
+  });
+  return completion;
 }
 
-export {
-    chatCompletion,
-    createCompletion,
-};
+export { chatCompletion, createCompletion };
