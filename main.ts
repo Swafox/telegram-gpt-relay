@@ -55,7 +55,18 @@ bot.command("clear", async (ctx) => {
     );
     ctx.reply("Cleared our conversation from the database");
   } else {
-    ctx.reply("You are not in the database! Please use /start to add yourself to the database");
+    ctx.reply(`You are not in the database! Please use /start at ${bot.botInfo.username}`);
+  }
+});
+
+// Stats command handler
+bot.command("stats", async (ctx) => {
+  const user = await collection.findOne({ _id: ctx.msg.chat.id });
+  if (user) {
+    const monetary = (user.usage / 1000) * 0.002;
+    ctx.reply(`You have used ${user.usage} tokens, which is ${monetary} USD at the current rate of 0.002 USD per 1000 tokens.`);
+  } else {
+    ctx.reply(`You are not in the database! Please use /start at ${bot.botInfo.username}`);
   }
 });
 
@@ -78,8 +89,10 @@ bot.on("message:text", async (ctx) => {
     // Update the database and add usage from response.usage.completion_tokens
     collection.updateOne(
       { _id: ctx.msg.chat.id },
-      { $set: { messages: messages }, 
-      $inc: { usage: response.usage.completion_tokens } },
+      {
+        $set: { messages: messages },
+        $inc: { usage: response.usage.completion_tokens }
+      },
     );
 
     ctx.api.editMessageText(ctx.msg.chat.id, thinking.message_id, response.choices[0].message?.content as string);
