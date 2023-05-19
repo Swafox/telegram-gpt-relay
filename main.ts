@@ -101,7 +101,7 @@ bot.on("message:text", async (ctx) => {
       { _id: ctx.msg.chat.id },
       {
         $set: { messages: messages },
-        $inc: { usage: response.usage.completion_tokens },
+        $inc: { usage: response.usage.completion_tokens + response.usage.prompt_tokens },
       },
     );
 
