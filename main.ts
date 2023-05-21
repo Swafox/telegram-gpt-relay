@@ -2,6 +2,7 @@ import { Bot } from "https://deno.land/x/grammy@v1.15.3/mod.ts";
 import { load } from "https://deno.land/std@0.170.0/dotenv/mod.ts";
 import { MongoClient } from "https://deno.land/x/mongo@v0.31.2/mod.ts";
 import { chatCompletion, createCompletion } from "./chat.ts";
+import { createTranscription } from "./voice.ts";
 
 // Get the API key from the .env file
 const configData: Record<string, string> = await load();
@@ -114,6 +115,41 @@ bot.on("message:text", async (ctx) => {
     ctx.reply(
       "You are not in the database! Please use /start to add yourself to the database",
     );
+  }
+});
+
+// Voice message handler
+bot.on("message:voice", async (ctx) => {
+  const voice = ctx.msg.voice;
+  const duration = voice.duration;
+
+  if (duration > 60) {
+    ctx.reply("Sorry, I can only transcribe voice messages up to 60 seconds");
+  } else {
+    const file = await ctx.getFile();
+    const path = file.file_path as string;
+    const file_path = `https://api.telegram.org/file/bot${apiKey}/${path}`;
+
+    const file_save = await fetch(file_path);
+
+    if (!file_save.ok) {
+      throw new Error(`Failed to download file: ${file_save.status} ${file_save.statusText}`);
+    }
+
+    const content = await file_save.arrayBuffer();
+    const filename = `./tmp/${voice.file_id}.ogg`;
+    await Deno.writeFile(filename, new Uint8Array(content));
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    const convert = Deno.run({
+      cmd: ["./tmp/convert.sh", voice.file_id],
+    });
+
+    const mp3Filename = `./tmp/${voice.file_id}.mp3`;
+
+    const message = await createTranscription(mp3Filename);
+    ctx.reply(message.text || "Sorry, I couldn't transcribe that");
   }
 });
 

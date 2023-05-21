@@ -1,3 +1,4 @@
 .vscode
 deno.lock
 .env
+/tmp/*.ogg
