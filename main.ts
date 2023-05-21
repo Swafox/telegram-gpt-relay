@@ -147,10 +147,6 @@ bot.on("message:voice", async (ctx) => {
 
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    const convert = Deno.run({
-      cmd: ["./tmp/convert.sh", voice.file_id],
-    });
-
     const mp3Filename = `./tmp/${voice.file_id}.mp3`;
 
     const message = await createTranscription(mp3Filename);
