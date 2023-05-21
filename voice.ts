@@ -6,11 +6,11 @@ const aikey: string = configData["OPENAI_API_KEY"];
 const openAI = new OpenAI(aikey);
 
 async function createTranscription(file: string) {
-    const response = await openAI.createTranscription({
-        file: file,
-        model: "whisper-1",
-    });
-    return response;
+  const response = await openAI.createTranscription({
+    file: file,
+    model: "whisper-1",
+  });
+  return response;
 }
 
 export { createTranscription };

@@ -102,7 +102,10 @@ bot.on("message:text", async (ctx) => {
       { _id: ctx.msg.chat.id },
       {
         $set: { messages: messages },
-        $inc: { usage: response.usage.completion_tokens + response.usage.prompt_tokens },
+        $inc: {
+          usage: response.usage.completion_tokens +
+            response.usage.prompt_tokens,
+        },
       },
     );
 
@@ -133,7 +136,9 @@ bot.on("message:voice", async (ctx) => {
     const file_save = await fetch(file_path);
 
     if (!file_save.ok) {
-      throw new Error(`Failed to download file: ${file_save.status} ${file_save.statusText}`);
+      throw new Error(
+        `Failed to download file: ${file_save.status} ${file_save.statusText}`,
+      );
     }
 
     const content = await file_save.arrayBuffer();
