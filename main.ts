@@ -1,6 +1,7 @@
 import { Bot } from "https://deno.land/x/grammy@v1.15.3/mod.ts";
 import { load } from "https://deno.land/std@0.170.0/dotenv/mod.ts";
 import { MongoClient } from "https://deno.land/x/mongo@v0.31.2/mod.ts";
+import { sh } from "https://deno.land/x/drake@v1.6.0/mod.ts";
 import { chatCompletion, createCompletion } from "./chat.ts";
 import { createTranscription } from "./voice.ts";
 
@@ -126,8 +127,10 @@ bot.on("message:voice", async (ctx) => {
   const voice = ctx.msg.voice;
   const duration = voice.duration;
 
-  if (duration > 60) {
-    ctx.reply("Sorry, I can only transcribe voice messages up to 60 seconds");
+  if (duration > 120) {
+    ctx.reply(
+      "Sorry, I can only transcribe voice messages up to 120 seconds (2 minutes)",
+    );
   } else {
     const file = await ctx.getFile();
     const path = file.file_path as string;
@@ -143,14 +146,21 @@ bot.on("message:voice", async (ctx) => {
 
     const content = await file_save.arrayBuffer();
     const filename = `./tmp/${voice.file_id}.ogg`;
+    const mp3Filename = `./tmp/${voice.file_id}.mp3`;
     await Deno.writeFile(filename, new Uint8Array(content));
 
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    const mp3Filename = `./tmp/${voice.file_id}.mp3`;
+    await sh(`ffmpeg -i ${filename} ${mp3Filename}`);
 
     const message = await createTranscription(mp3Filename);
     ctx.reply(message.text || "Sorry, I couldn't transcribe that");
+
+    const tokens = Math.ceil(duration / 60) * 6;
+    collection.updateOne(
+      { _id: ctx.msg.chat.id },
+      { $inc: { usage: tokens } },
+    );
+
+    await Deno.remove(filename);
   }
 });
 
