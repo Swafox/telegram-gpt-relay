@@ -10,6 +10,7 @@ async function chatCompletion(messages: any[]) {
   const completion = await openAI.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages: messages,
+    maxTokens: 150,
   });
   return completion;
 }

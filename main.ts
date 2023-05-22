@@ -161,6 +161,7 @@ bot.on("message:voice", async (ctx) => {
     );
 
     await Deno.remove(filename);
+    await Deno.remove(mp3Filename);
   }
 });
 
