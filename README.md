@@ -16,9 +16,6 @@ Built using [Deno](https://deno.land/), [grammY](https://grammy.dev/) and
 git clone https://github.com/Swafox/telegram-gpt-relay.git
 cd telegram-gpt-relay
 cp .env.example .env
-cd  tmp/
-chmod +x convert.sh
-./convert.sh &
 deno cache --unstable --reload --lock=deno.lock --lock-write src/main.ts
 deno task run
 ```
