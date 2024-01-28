@@ -124,44 +124,51 @@ bot.on("message:text", async (ctx) => {
 
 // Voice message handler
 bot.on("message:voice", async (ctx) => {
-  const voice = ctx.msg.voice;
-  const duration = voice.duration;
+  const user = await collection.findOne({ _id: ctx.msg.chat.id });
+  if (user) {
+    const voice = ctx.msg.voice;
+    const duration = voice.duration;
 
-  if (duration > 120) {
-    ctx.reply(
-      "Sorry, I can only transcribe voice messages up to 120 seconds (2 minutes)",
-    );
-  } else {
-    const file = await ctx.getFile();
-    const path = file.file_path as string;
-    const file_path = `https://api.telegram.org/file/bot${apiKey}/${path}`;
-
-    const file_save = await fetch(file_path);
-
-    if (!file_save.ok) {
-      throw new Error(
-        `Failed to download file: ${file_save.status} ${file_save.statusText}`,
+    if (duration > 300) {
+      ctx.reply(
+        "Sorry, I can only transcribe voice messages up to 5 minutes",
       );
+    } else {
+      const file = await ctx.getFile();
+      const path = file.file_path as string;
+      const file_path = `https://api.telegram.org/file/bot${apiKey}/${path}`;
+
+      const file_save = await fetch(file_path);
+
+      if (!file_save.ok) {
+        throw new Error(
+          `Failed to download file: ${file_save.status} ${file_save.statusText}`,
+        );
+      }
+
+      const content = await file_save.arrayBuffer();
+      const filename = `./tmp/${voice.file_id}.ogg`;
+      const mp3Filename = `./tmp/${voice.file_id}.mp3`;
+      await Deno.writeFile(filename, new Uint8Array(content));
+
+      await sh(`ffmpeg -i ${filename} ${mp3Filename}`);
+
+      const message = await createTranscription(mp3Filename);
+      ctx.reply(message.text || "Sorry, I couldn't transcribe that");
+
+      const tokens = Math.ceil(duration / 60) * 6;
+      collection.updateOne(
+        { _id: ctx.msg.chat.id },
+        { $inc: { usage: tokens } },
+      );
+
+      await Deno.remove(filename);
+      await Deno.remove(mp3Filename);
     }
-
-    const content = await file_save.arrayBuffer();
-    const filename = `./tmp/${voice.file_id}.ogg`;
-    const mp3Filename = `./tmp/${voice.file_id}.mp3`;
-    await Deno.writeFile(filename, new Uint8Array(content));
-
-    await sh(`ffmpeg -i ${filename} ${mp3Filename}`);
-
-    const message = await createTranscription(mp3Filename);
-    ctx.reply(message.text || "Sorry, I couldn't transcribe that");
-
-    const tokens = Math.ceil(duration / 60) * 6;
-    collection.updateOne(
-      { _id: ctx.msg.chat.id },
-      { $inc: { usage: tokens } },
+  } else {
+    ctx.reply(
+      "You are not in the database! Please use /start to add yourself to the database",
     );
-
-    await Deno.remove(filename);
-    await Deno.remove(mp3Filename);
   }
 });
 
