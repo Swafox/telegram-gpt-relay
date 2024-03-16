@@ -4,19 +4,22 @@ Enables the use of Chat-GPT on Telegram. With database support for multiple
 users, bot has context for each user and can continue conversations in a
 chat-like manner.
 
-Built using [Deno](https://deno.land/), [grammY](https://grammy.dev/) and
-[OpenAI](https://openai.com/).
+Built using [Deno](https://deno.land/), [grammY](https://grammy.dev/), [OpenAI](https://openai.com/) and [Ollama](https://ollama.com/).
+
+All chat completions are done using Ollama 7B. OpenAI is only used for voice to text conversion.
 
 ## Setup
 
 - Install [Deno](https://deno.land/)
 - Install [FFmpeg](https://ffmpeg.org/)
+- Install [Ollama](https://ollama.com/)
 
 ```zsh
 git clone https://github.com/Swafox/telegram-gpt-relay.git
 cd telegram-gpt-relay
-cp .env.example .env
-deno cache --unstable --reload --lock=deno.lock --lock-write src/main.ts
+cp .env.example .env # Fill in the environment variables
+ollama pull llama2
+ollama run llama2
 deno task run
 ```
 

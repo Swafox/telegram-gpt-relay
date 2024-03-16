@@ -16,7 +16,9 @@ const dbpass: string = configData["DB_PASSWORD"];
 const client = new MongoClient();
 await client.connect(
   `mongodb+srv://${dbuser}:${dbpass}@${dbhost}/?authMechanism=SCRAM-SHA-1`,
-);
+).then(() => {
+  console.log("Connected to the database");
+});
 const db = client.database("gptcluster");
 const collection = db.collection("users");
 
@@ -104,8 +106,8 @@ bot.on("message:text", async (ctx) => {
       {
         $set: { messages: messages },
         $inc: {
-          usage: response.usage.completion_tokens +
-            response.usage.prompt_tokens,
+          usage: (response.usage?.completion_tokens ?? 0) +
+            (response.usage?.prompt_tokens ?? 0),
         },
       },
     );
@@ -180,9 +182,9 @@ bot.on("inline_query", async (ctx) => {
     {
       type: "article",
       id: "1",
-      title: response.choices[0].text as string,
+      title: response.choices[0].message?.content as string,
       input_message_content: {
-        message_text: response.choices[0].text as string,
+        message_text: response.choices[0].message?.content as string,
       },
     },
   ]);
