@@ -18,8 +18,11 @@ All chat completions are done using Ollama 7B. OpenAI is only used for voice to 
 git clone https://github.com/Swafox/telegram-gpt-relay.git
 cd telegram-gpt-relay
 cp .env.example .env # Fill in the environment variables
-ollama pull llama2
-ollama run llama2
+
+# Example: ollama pull llama3.1:8b
+# Check @availablemodels.ts for available models and modify it to your liking.
+ollama pull <models_you_want_to_use>
+
 deno task run
 ```
 
@@ -47,9 +50,3 @@ OpenAI
 **/start** - Starts the bot and adds user to the database.
 
 **/clear** - Clears the user's chat history and drops context.
-
-## TODO
-
-- [ ] Dynamic price calculation.
-- [ ] User can select model.
-- [ ] Admin tools.

@@ -2,6 +2,7 @@ import { Bot } from "https://deno.land/x/grammy@v1.15.3/mod.ts";
 import { load } from "https://deno.land/std@0.170.0/dotenv/mod.ts";
 import { chatCompletion, createCompletion } from "./chat.ts";
 import { createTranscription } from "./voice.ts";
+import { availableModels } from "./availablemodels.ts";
 
 const configData: Record<string, string> = await load();
 const apiKey: string = configData["TG_AUTH"];
@@ -20,7 +21,7 @@ try {
 
 bot.command("start", async (ctx) => {
   ctx.reply(
-    "I am an AI based on GPT-3 language model. \n I can answer your questions and chat with you in any language. \n Type /clear to remove chat context and start a new conversation."
+    "I am an AI assistant. \n I can answer your questions and chat with you in any language. Send me messages, channel posts or even voice messages. \n Type /clear to remove chat context and start a new conversation."
   );
 
   const user = await kv.get(["users", ctx.msg.chat.id]);
@@ -30,6 +31,7 @@ bot.command("start", async (ctx) => {
     await kv.set(["users", ctx.msg.chat.id], {
       messages: [],
       usage: 0,
+      model: "gpt-4o-mini",
     });
     ctx.reply("Hello! Adding our conversation to the database");
   }
@@ -64,10 +66,42 @@ bot.command("stats", async (ctx) => {
   }
 });
 
+bot.command("model", async (ctx) => {
+  const user = await kv.get(["users", ctx.msg.chat.id]);
+  if (!user.value) {
+    ctx.reply(
+      `You are not in the database! Please use /start at ${bot.botInfo.username}`
+    );
+    return;
+  }
+
+  const requestedModel = ctx.msg.text.split(" ")[1];
+  const currentModel = user.value.model || "llama2";
+
+  if (!requestedModel) {
+    const modelList = availableModels.join("\n");
+    ctx.reply(
+      `Current model: ${currentModel}\n\nAvailable models:\n${modelList}\n\nTo change model, send /model <model_name>`
+    );
+    return;
+  }
+
+  if (availableModels.includes(requestedModel)) {
+    await kv.set(["users", ctx.msg.chat.id], {
+      ...user.value,
+      model: requestedModel,
+    });
+    ctx.reply(`Model changed to: ${requestedModel}`);
+  } else {
+    ctx.reply("Invalid model name. Please choose from the list above.");
+  }
+});
+
 bot.on("message:text", async (ctx) => {
   const user = await kv.get(["users", ctx.msg.chat.id]);
   if (user.value) {
     const messages = user.value.messages;
+    const userModel = user.value.model || "llama2";
     messages.push({ role: "user", content: ctx.msg.text });
 
     await kv.set(["users", ctx.msg.chat.id], {
@@ -77,7 +111,7 @@ bot.on("message:text", async (ctx) => {
 
     const thinking = await ctx.reply("Thinking...");
 
-    const response = await chatCompletion(messages);
+    const response = await chatCompletion(messages, userModel);
 
     messages.push({
       role: "assistant",
@@ -85,6 +119,7 @@ bot.on("message:text", async (ctx) => {
     });
 
     await kv.set(["users", ctx.msg.chat.id], {
+      ...user.value,
       messages: messages,
       usage:
         user.value.usage +
