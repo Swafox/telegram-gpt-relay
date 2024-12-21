@@ -7,6 +7,6 @@ export const availableModels = [
   "llama3.3",
   "gpt-4o",
   "gpt-4o-mini",
-  "gpt-o1-preview",
-  "gpt-o1-mini",
+  "o1-preview",
+  "o1-mini",
 ];
