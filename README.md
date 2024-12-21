@@ -47,3 +47,9 @@ OpenAI
 **/start** - Starts the bot and adds user to the database.
 
 **/clear** - Clears the user's chat history and drops context.
+
+## TODO
+
+- [ ] Dynamic price calculation.
+- [ ] User can select model.
+- [ ] Admin tools.
