@@ -55,9 +55,35 @@ bot.command("clear", async (ctx) => {
 bot.command("stats", async (ctx) => {
   const user = await kv.get(["users", ctx.msg.chat.id]);
   if (user.value) {
-    const monetary = (user.value.usage / 1000) * 0.002;
+    const messages = user.value.messages;
+    let totalCost = 0;
+
+    messages.forEach((msg: any) => {
+      const model = msg.model || "llama2";
+
+      if (model.startsWith("llama")) {
+        return;
+      }
+
+      const tokens = msg.tokens || 0;
+
+      const pricing: Record<string, { input: number; output: number }> = {
+        "gpt-4o": { input: 0.0025, output: 0.01 },
+        "gpt-4o-mini": { input: 0.00015, output: 0.0006 },
+        "gpt-o1": { input: 0.015, output: 0.06 },
+        "gpt-o1-mini": { input: 0.003, output: 0.012 },
+      };
+
+      if (pricing[model]) {
+        const { input, output } = pricing[model];
+        totalCost += (tokens / 1000) * (msg.role === "user" ? input : output);
+      }
+    });
+
     ctx.reply(
-      `You have used ${user.value.usage} tokens, which is ${monetary} USD at the current rate of 0.002 USD per 1000 tokens.`
+      `You have used ${user.value.usage} tokens.\n` +
+        `Estimated cost: $${totalCost.toFixed(4)} USD\n` +
+        `Note: Llama models are free and not included in the cost calculation.`
     );
   } else {
     ctx.reply(
@@ -102,7 +128,6 @@ bot.on("message:text", async (ctx) => {
   if (user.value) {
     const messages = user.value.messages;
     const userModel = user.value.model || "llama2";
-    messages.push({ role: "user", content: ctx.msg.text });
 
     await kv.set(["users", ctx.msg.chat.id], {
       ...user.value,
